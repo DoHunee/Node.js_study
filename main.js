@@ -15,168 +15,89 @@ http://localhost:3000/?id=CSS 입력하면 페이지에 CSS가 출력된다
 
 */
 
+// 모듈 불러오는 부분 
+var http = require('http'); // http 기능 
+var fs = require('fs');   // 파일 시스템 접근 기능
+var url = require('url');  // URL 해석 시능
  
-// var http = require('http');
-// var fs = require('fs');
-// var url = require('url');
-
-// var app = http.createServer(function(request,response){
-//     var _url = request.url; // url 이 중복되니 _url로 정의
-//     var queryData = url.parse(_url, true).query;
-//     console.log(queryData.id);
-//     if(_url == '/'){
-//       _url = '/index.html';
-//     }
-//     if(_url == '/favicon.ico'){
-//       return response.writeHead(404);
-//     }
-//     response.writeHead(200);
-//     response.end(queryData.id); // (queryData.id)의 값을 페이지에 출력하는 역할이다
-
-// });
-// app.listen(3000);
-
-
-// 정적으로 웹 페이지 나타낸다!
-// queryData.get("id")를 통해 특정 쿼리 파라미터의 값을 가져옵니다.
-// 당연히 본문 내용은 안바뀌고 타잍틀만 바뀌겠지?
-// var http = require("http");
-// var fs = require("fs");
-// var url = require("url");
-
-// var app = http.createServer(function (request, response) {
-//   var _url = request.url;
-//   var queryData = new URL("http://localhost:5000" + _url).searchParams;
-//   var title = queryData.get("id");
-
-//   if (_url == "/") {
-//     title = "Welcome";
-//   } else if (_url == "/favicon.ico") {
-//     response.writeHead(404);
-//     response.end();
-//     return;
-//   } else {
-//     title = queryData.get("id");
-//   }
-//   response.writeHead(200);
-//   var template = `
-//     <!doctype html>
-//     <html>
-//     <head>
-//       <title>WEB1 - ${title}</title>
-//       <meta charset="utf-8">
-//     </head>
-//     <body>
-//       <h1><a href="/">WEB</a></h1>
-//       <ul>
-//         <li><a href="/?id=HTML">HTML</a></li>
-//         <li><a href="/?id=CSS">CSS</a></li>
-//         <li><a href="/?id=JavaScript">JavaScript</a></li>
-//       </ul>
-//       <h2>${title}</h2>
-//       <p><a href="https://www.w3.org/TR/html5/" target="_blank" title="html5 speicification">Hypertext Markup Language (HTML)</a> is the standard markup language for <strong>creating <u>web</u> pages</strong> and web applications.Web browsers receive HTML documents from a web server or from local storage and render them into multimedia web pages. HTML describes the structure of a web page semantically and originally included cues for the appearance of the document.
-//       <img src="coding.jpg" width="100%">
-//       </p><p style="margin-top:45px;">HTML elements are the building blocks of HTML pages. With HTML constructs, images and other objects, such as interactive forms, may be embedded into the rendered page. It provides a means to create structured documents by denoting structural semantics for text such as headings, paragraphs, lists, links, quotes and other items. HTML elements are delineated by tags, written using angle brackets.
-//       </p>
-//     </body>
-//     </html>
-//     `;
-//   response.end(template);
-// });
-// app.listen(3000);
-
-
-
-// 이 코드는 fs.readFile을 사용하여 파일 시스템에서 data/${queryData.id} 경로의 파일을 읽어 동적으로 페이지를 나타내는 방식!!
-// var http = require('http');
-// var fs = require('fs');
-// var url = require('url');
-// var app = http.createServer(function(request,response){
-//     var _url = request.url;
-//     var queryData = url.parse(_url, true).query;
-//     var title = queryData.id;
-//     if(_url == '/'){
-//       title = 'Welcome';
-//     }
-//     if(_url == '/favicon.ico'){
-//       return response.writeHead(404);
-//     }
-//     response.writeHead(200);
-//     fs.readFile(`data/${queryData.id}`, 'utf8', function(err, description){
-//       var template = `
-//       <!doctype html>
-//       <html>
-//       <head>
-//         <title>WEB1 - ${title}</title>
-//         <meta charset="utf-8">
-//       </head>
-//       <body>
-//         <h1><a href="/">WEB</a></h1>
-//         <ul>
-//           <li><a href="/?id=HTML">HTML</a></li>
-//           <li><a href="/?id=CSS">CSS</a></li>
-//           <li><a href="/?id=JavaScript">JavaScript</a></li>
-//         </ul>
-//         <h2>${title}</h2>
-//         <p>${description}</p>
-//       </body>
-//       </html>
-//       `;
-//       response.end(template);
-//     })
-
-
-// });
-// app.listen(3000);
-
-
-
-
-// 정해진 경로가 아닌 다른 경로로 접속하면 오류 페이지가 뜨게 
-var http = require('http');
-var fs = require('fs');
-var url = require('url');
- 
+// 이 전체 코드 자체가 함수를 호출하여 서버를 생성하는 부분이겠지??
 var app = http.createServer(function(request,response){
-    var _url = request.url;
-    var queryData = url.parse(_url, true).query;
-    var pathname = url.parse(_url, true).pathname;
-    var title = queryData.id;
-
-    // console.log(url.parse(_url,true).pathname0);
- 
+    
+    // 이 부분이 요청된 url을 해석하는 부분이야!!
+    var _url = request.url;  // 요청된 URL을 _url 변수에 저장하고, url.parse 함수를 사용하여 해당 URL을 해석
+    var queryData = url.parse(_url, true).query;    //URL의 쿼리 스트링을 파싱한 결과
+    var pathname = url.parse(_url, true).pathname;  //url의 경로 부분 
+    
+    // 루트 경로의 요청인 경우 
     if(pathname === '/'){
-      fs.readFile(`data/${queryData.id}`, 'utf8', function(err, description){
-        var template = `
-        <!doctype html>
-        <html>
-        <head>
-          <title>WEB1 - ${title}</title>
-          <meta charset="utf-8">
-        </head>
-        <body>
-          <h1><a href="/">WEB</a></h1>
-          <ul>
-            <li><a href="/?id=HTML">HTML</a></li>
-            <li><a href="/?id=CSS">CSS</a></li>
-            <li><a href="/?id=JavaScript">JavaScript</a></li>
-          </ul>
-          <h2>${title}</h2>
-          <p>${description}</p>
-        </body>
-        </html>
-        `;
-        response.writeHead(200);
-        response.end(template);
-      });
-    }
-    // 루트 경로가 아닌 다른 경로로 접속하면 Not found 
+      // 쿼리 스트링이 없는 경우 기본적으로 보여줄 Welcome page 구성 부분 
+      if(queryData.id === undefined){      
+        
+        // fs.readFile : 파일을 비동기적으로 읽는 명령
+        // function(err, description): 이것은 파일 읽기 작업이 완료된 후 실행될 콜백 함수입니다. 이 함수는 다음 두 매개변수를 받습니다:
+        // err: 파일 읽기 과정에서 오류가 발생한 경우, 이 매개변수는 오류 객체를 포함합니다. 오류가 없는 경우에는 null이 됩니다.
+        // description: 파일 읽기 작업이 성공적으로 완료되면, 이 매개변수는 파일의 내용을 담은 문자열이 됩니다.
+        fs.readFile(`data/${queryData.id}`, 'utf8', function(err, description){
+          var title = 'Welcome'; //제목
+          var description = 'Hello, Node.js'; //내용
+          
+          var template = `
+          <!doctype html>
+          <html>
+          <head>
+            <title>WEB1 - ${title}</title>
+            <meta charset="utf-8">
+          </head>
+          <body>
+            <h1><a href="/">WEB</a></h1>
+            <ul>
+              <li><a href="/?id=HTML">HTML</a></li>
+              <li><a href="/?id=CSS">CSS</a></li>
+              <li><a href="/?id=JavaScript">JavaScript</a></li>
+            </ul>
+            <h2>${title}</h2>
+            <p>${description}</p>
+          </body>
+          </html>
+          `;
+          response.writeHead(200);  // response.writeHead(200)를 호출하여 HTTP 상태 코드 200(성공)을 응답 헤더에 설정하고,
+          response.end(template); //response.end(template)를 호출하여 생성된 HTML 템플릿을 응답 본문으로 전송합니다.
+        });
+      } 
+      
+      else {
+        fs.readFile(`data/${queryData.id}`, 'utf8', function(err, description){
+          var title = queryData.id;
+          var template = `
+          <!doctype html>
+          <html>
+          <head>
+            <title>WEB1 - ${title}</title>
+            <meta charset="utf-8">
+          </head>
+          <body>
+            <h1><a href="/">WEB</a></h1>
+            <ul>
+              <li><a href="/?id=HTML">HTML</a></li>
+              <li><a href="/?id=CSS">CSS</a></li>
+              <li><a href="/?id=JavaScript">JavaScript</a></li>
+            </ul>
+            <h2>${title}</h2>
+            <p>${description}</p>
+          </body>
+          </html>
+          `;
+          response.writeHead(200);
+          response.end(template);
+        });
+      }
+    } 
+    
+    // 루트 경로의 요청이 아닌 경우는 Not found 가 뜨겠지!!
     else {
       response.writeHead(404);
       response.end('Not found');
     }
- 
- 
- 
 });
-app.listen(3000);
+
+app.listen(3000); // 생성한 서버의 포트번호를 3000번으로 할당!
