@@ -37,7 +37,9 @@ http://localhost:3000/?id=CSS 입력하면 페이지에 CSS가 출력된다
 // app.listen(3000);
 
 
-
+// 정적으로 웹 페이지 나타낸다!
+// queryData.get("id")를 통해 특정 쿼리 파라미터의 값을 가져옵니다.
+// 당연히 본문 내용은 안바뀌고 타잍틀만 바뀌겠지?
 // var http = require("http");
 // var fs = require("fs");
 // var url = require("url");
@@ -85,44 +87,96 @@ http://localhost:3000/?id=CSS 입력하면 페이지에 CSS가 출력된다
 
 
 
+// 이 코드는 fs.readFile을 사용하여 파일 시스템에서 data/${queryData.id} 경로의 파일을 읽어 동적으로 페이지를 나타내는 방식!!
+// var http = require('http');
+// var fs = require('fs');
+// var url = require('url');
+// var app = http.createServer(function(request,response){
+//     var _url = request.url;
+//     var queryData = url.parse(_url, true).query;
+//     var title = queryData.id;
+//     if(_url == '/'){
+//       title = 'Welcome';
+//     }
+//     if(_url == '/favicon.ico'){
+//       return response.writeHead(404);
+//     }
+//     response.writeHead(200);
+//     fs.readFile(`data/${queryData.id}`, 'utf8', function(err, description){
+//       var template = `
+//       <!doctype html>
+//       <html>
+//       <head>
+//         <title>WEB1 - ${title}</title>
+//         <meta charset="utf-8">
+//       </head>
+//       <body>
+//         <h1><a href="/">WEB</a></h1>
+//         <ul>
+//           <li><a href="/?id=HTML">HTML</a></li>
+//           <li><a href="/?id=CSS">CSS</a></li>
+//           <li><a href="/?id=JavaScript">JavaScript</a></li>
+//         </ul>
+//         <h2>${title}</h2>
+//         <p>${description}</p>
+//       </body>
+//       </html>
+//       `;
+//       response.end(template);
+//     })
+
+
+// });
+// app.listen(3000);
+
+
+
+
+// 정해진 경로가 아닌 다른 경로로 접속하면 오류 페이지가 뜨게 
 var http = require('http');
 var fs = require('fs');
 var url = require('url');
+ 
 var app = http.createServer(function(request,response){
     var _url = request.url;
     var queryData = url.parse(_url, true).query;
+    var pathname = url.parse(_url, true).pathname;
     var title = queryData.id;
-    if(_url == '/'){
-      title = 'Welcome';
-    }
-    if(_url == '/favicon.ico'){
-      return response.writeHead(404);
-    }
-    response.writeHead(200);
-    fs.readFile(`data/${queryData.id}`, 'utf8', function(err, description){
-      var template = `
-      <!doctype html>
-      <html>
-      <head>
-        <title>WEB1 - ${title}</title>
-        <meta charset="utf-8">
-      </head>
-      <body>
-        <h1><a href="/">WEB</a></h1>
-        <ul>
-          <li><a href="/?id=HTML">HTML</a></li>
-          <li><a href="/?id=CSS">CSS</a></li>
-          <li><a href="/?id=JavaScript">JavaScript</a></li>
-        </ul>
-        <h2>${title}</h2>
-        <p>${description}</p>
-      </body>
-      </html>
-      `;
-      response.end(template);
-    })
 
-
+    // console.log(url.parse(_url,true).pathname0);
+ 
+    if(pathname === '/'){
+      fs.readFile(`data/${queryData.id}`, 'utf8', function(err, description){
+        var template = `
+        <!doctype html>
+        <html>
+        <head>
+          <title>WEB1 - ${title}</title>
+          <meta charset="utf-8">
+        </head>
+        <body>
+          <h1><a href="/">WEB</a></h1>
+          <ul>
+            <li><a href="/?id=HTML">HTML</a></li>
+            <li><a href="/?id=CSS">CSS</a></li>
+            <li><a href="/?id=JavaScript">JavaScript</a></li>
+          </ul>
+          <h2>${title}</h2>
+          <p>${description}</p>
+        </body>
+        </html>
+        `;
+        response.writeHead(200);
+        response.end(template);
+      });
+    }
+    // 루트 경로가 아닌 다른 경로로 접속하면 Not found 
+    else {
+      response.writeHead(404);
+      response.end('Not found');
+    }
+ 
+ 
+ 
 });
 app.listen(3000);
-
