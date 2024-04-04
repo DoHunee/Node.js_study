@@ -1,18 +1,8 @@
+
 /*
-response.end라는 코드는 (queryData.id)의 값을 페이지에 출력하는 역할이다
-따라서 이제 http://localhost:3000/?id= 뒤에 오는 (queryData.id)값을 변경하면
-http://localhost:3000/?id=HTML
-http://localhost:3000/?id=CSS 등등의 여러가지 페이지를 만들어낼 수 있다
-
-http://127.0.0.1:5500/index.html
-http://127.0.0.1:5500/1.html
-http://127.0.0.1:5500/2.html
-http://127.0.0.1:5500/3.html
-http://127.0.0.1:5500/checkbox.html
-
-http://localhost:3000/?id=HTML 을 입력하면 페이지에 HTML이 출력되고
-http://localhost:3000/?id=CSS 입력하면 페이지에 CSS가 출력된다
-
+전의 코드와 다른점!!
+첫 번째 코드는 queryData.id가 undefined일 때 올바르지 않은 파일 경로를 참조하여 파일을 읽으려고 시도합니다.
+두 번째 코드는 queryData.id의 값에 관계없이 항상 ./data 디렉토리의 파일 목록을 읽고, 이를 기반으로 페이지를 생성하여 응답합니다. queryData.id 값이 존재할 경우에는 해당 파일의 내용도 추가로 읽어서 페이지에 표시합니다.
 */
 
 // 모듈 불러오는 부분
@@ -31,10 +21,10 @@ var app = http.createServer(function (request, response) {
   if (pathname === "/") {
     // 쿼리 스트링이 없는 경우 기본적으로 보여줄 Welcome page 구성 부분
     if (queryData.id === undefined) {
-      // fs.readFile : 파일을 비동기적으로 읽는 명령
-      // function(err, description): 이것은 파일 읽기 작업이 완료된 후 실행될 콜백 함수입니다. 이 함수는 다음 두 매개변수를 받습니다:
-      // err: 파일 읽기 과정에서 오류가 발생한 경우, 이 매개변수는 오류 객체를 포함합니다. 오류가 없는 경우에는 null이 됩니다.
-      // description: 파일 읽기 작업이 성공적으로 완료되면, 이 매개변수는 파일의 내용을 담은 문자열이 됩니다.
+      
+      // fs.readdir(경로, 콜백함수) : 특정 디렉토리의 파일과 하위 디렉토리 목록을 읽는 데 사용;
+      // 경로: 읽고자 하는 디렉토리의 경로입니다.
+      // 콜백함수: 디렉토리 읽기 작업이 완료된 후에 실행될 함수입니다. 이 함수는 두 개의 매개변수를 가집니다:
       fs.readdir("./data", function (error, filelist) {
         var title = "Welcome"; //제목
         var description = "Hello, Node.js"; //내용
@@ -46,6 +36,7 @@ var app = http.createServer(function (request, response) {
           i = i + 1;
         }
         list = list + "</ul>";
+        
         var template = `
           <!doctype html>
           <html>
@@ -76,6 +67,7 @@ var app = http.createServer(function (request, response) {
           i = i + 1;
         }
         list = list + "</ul>";
+        
         fs.readFile(
           `data/${queryData.id}`,
           "utf8",
