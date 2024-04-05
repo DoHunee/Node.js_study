@@ -8,6 +8,7 @@
 var http = require("http"); // http 기능
 var fs = require("fs"); // 파일 시스템 접근 기능
 var url = require("url"); // URL 해석 시능
+var qs = require('querystring'); //querystring 모듈 임포트
 
 // 중복되는 부분을 줄이기 위해 함수 선언 후 사용
 function templateHTML(title, list, body) {
@@ -21,6 +22,7 @@ function templateHTML(title, list, body) {
   <body>
     <h1><a href="/">WEB</a></h1>
     ${list}
+    <a href ="/create">create</a>
     ${body}
   </body>
   </html>
@@ -46,7 +48,7 @@ var app = http.createServer(function (request, response) {
   var _url = request.url; // 요청된 URL을 _url 변수에 저장하고, url.parse 함수를 사용하여 해당 URL을 해석
   var queryData = url.parse(_url, true).query; //URL의 쿼리 스트링을 파싱한 결과
   var pathname = url.parse(_url, true).pathname; //url의 경로 부분
-
+  
   // 루트 경로의 요청인 경우
   if (pathname === "/") {
     // 쿼리 스트링이 없는 경우 기본적으로 보여줄 Welcome page 구성 부분
@@ -76,6 +78,46 @@ var app = http.createServer(function (request, response) {
     }
   }
 
+  // create 경로로 접근하는 경우!!
+  // 데이터의 노출을 막기위해 method를 Post방식으로!!
+  // Post방식 안하면 url에 데이터 유출되잖아!!
+  else if(pathname === '/create'){
+    fs.readdir('./data', function(error, filelist){
+      var title = 'WEB - create';
+      var list = templateList(filelist);
+      var template = templateHTML(title, list, `
+        <form action="http://localhost:3000/create_process" method="post">
+          <p><input type="text" name="title" placeholder="title"></p>
+          <p>
+            <textarea name="description" placeholder="description"></textarea>
+          </p>
+          <p>
+            <input type="submit">
+          </p>
+        </form>
+      `);
+      response.writeHead(200);
+      response.end(template);
+    });
+  }
+
+  else if(pathname === '/create_process'){
+    var body = '';
+    request.on('data', function(data){
+        body = body + data;
+    });
+    request.on('end', function(){
+        var post = qs.parse(body);
+        var title = post.title;
+        var description = post.description;
+        fs.writeFile(`data/${title}`, description, 'utf8', 
+        function(err){
+          response.writeHead(302, {Location: `/?id=${title}`});
+          response.end();
+        })
+    });
+
+  } 
   // 루트 경로의 요청이 아닌 경우는 Not found 가 뜨겠지!!
   else {
     response.writeHead(404);
