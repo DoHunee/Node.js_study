@@ -85,14 +85,14 @@ var app = http.createServer(function (request, response) {
   }
 
   // create 경로로 접근하는 경우!!
-  // 데이터의 노출을 막기위해 method를 Post방식으로!!
-  // Post방식 안하면 url에 데이터 유출되잖아!!
+  // 데이터의 노출을 막기위해 method를 Post방식으로!! = > Post방식 안하면 url에 데이터 유출되잖아!!
   else if(pathname === '/create'){
     fs.readdir('./data', function(error, filelist){
       var title = 'WEB - create';
       var list = templateList(filelist);
-      var template = templateHTML(title, list, `
-        <form action="http://localhost:3000/create_process" method="post">
+      var template = templateHTML(title, list, 
+        `
+        <form action="/create_process" method="post">
           <p><input type="text" name="title" placeholder="title"></p>
           <p>
             <textarea name="description" placeholder="description"></textarea>
@@ -101,12 +101,14 @@ var app = http.createServer(function (request, response) {
             <input type="submit">
           </p>
         </form>
-      `, ` `);
+      `
+      , ` `);
       response.writeHead(200);
       response.end(template);
     });
   }
 
+  // create로 전송한 데이터를 받아 파일생성과 리다이렉션하는 부분
   else if(pathname === '/create_process'){
     var body = '';
     request.on('data', function(data){
@@ -124,7 +126,56 @@ var app = http.createServer(function (request, response) {
     });
 
   } 
-  // 루트 경로의 요청이 아닌 경우는 Not found 가 뜨겠지!!
+
+  // update 경로로 접근하는 경우!!
+  // 파일 선택 후 업데이트 버튼을 눌렀을때
+  else if(pathname === '/update'){
+    fs.readdir("./data", function (error, filelist) {
+    fs.readFile(`data/${queryData.id}`, 'utf8', function(err, description){
+      var title = queryData.id; // 수정할 파일의 원래 타이틀 이름!
+      var list = templateList(filelist);
+      var template = templateHTML(title,list,
+        `
+        <form action="/update_process" method="post">
+          <input type="hidden" name="id" value="${title}">
+          <p><input type="text" name="title" placeholder="title" value="${title}"></p>
+          <p>
+            <textarea name="description" placeholder="description">${description}</textarea>
+          </p>
+          <p>
+            <input type="submit">
+          </p>
+        </form>
+        `,
+        `<a href="/create">create</a> <a href="/update?id=${title}">update</a>`
+        );
+      response.writeHead(200); // response.writeHead(200)를 호출하여 HTTP 상태 코드 200(성공)을 응답 헤더에 설정하고,
+      response.end(template); //response.end(template)를 호출하여 생성된 HTML 템플릿을 응답 본문으로 전송합니다.
+    });
+  });
+  }
+
+  // update로 전송한 데이터를 받아 파일명을 변경하고 내용을 저장하는 방법 
+  else if(pathname === '/update_process'){
+    var body = '';
+    request.on('data', function(data){
+        body = body + data;
+    });
+    request.on('end', function(){
+        var post = qs.parse(body);
+        var id = post.id;
+        var title = post.title;
+        var description = post.description;
+        fs.rename(`data/${id}`, `data/${title}`, function(error){
+          fs.writeFile(`data/${title}`, description, 'utf8', function(err){
+            response.writeHead(302, {Location: `/?id=${title}`});
+            response.end();
+          })
+        });
+    });
+  }
+
+  // 조건문을 제외한 모든 비정상적 접근! => not found 
   else {
     response.writeHead(404);
     response.end("Not found");
