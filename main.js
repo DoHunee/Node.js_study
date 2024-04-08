@@ -9,35 +9,8 @@ var http = require('http');
 var fs = require('fs');
 var url = require('url');
 var qs = require('querystring');
+var template = require('./lib/template.js');
 
-var template = {
-  HTML:function(title, list, body, control){
-    return `
-    <!doctype html>
-    <html>
-    <head>
-      <title>WEB1 - ${title}</title>
-      <meta charset="utf-8">
-    </head>
-    <body>
-      <h1><a href="/">WEB</a></h1>
-      ${list}
-      ${control}
-      ${body}
-    </body>
-    </html>
-    `;
-  },list:function(filelist){
-    var list = '<ul>';
-    var i = 0;
-    while(i < filelist.length){
-      list = list + `<li><a href="/?id=${filelist[i]}">${filelist[i]}</a></li>`;
-      i = i + 1;
-    }
-    list = list+'</ul>';
-    return list;
-  }
-}
 
 // 이 전체 코드 자체가 함수를 호출하여 서버를 생성하는 부분이겠지??
 var app = http.createServer(function(request,response){
@@ -193,7 +166,7 @@ var app = http.createServer(function(request,response){
           })
       });
     } 
-    
+
     //  조건문을 제외한 모든 비정상적 접근! => not found
     else {
       response.writeHead(404);
