@@ -11,7 +11,7 @@ var url = require("url"); // URL 해석 시능
 var qs = require('querystring'); //querystring 모듈 임포트
 
 // 중복되는 부분을 줄이기 위해 함수 선언 후 사용
-function templateHTML(title, list, body) {
+function templateHTML(title, list, body , control) {
   return `
   <!doctype html>
   <html>
@@ -22,7 +22,7 @@ function templateHTML(title, list, body) {
   <body>
     <h1><a href="/">WEB</a></h1>
     ${list}
-    <a href ="/create">create</a>
+    ${control}
     ${body}
   </body>
   </html>
@@ -60,7 +60,10 @@ var app = http.createServer(function (request, response) {
         var title = "Welcome"; //제목
         var description = "Hello, Node.js"; //내용
         var list = templateList(filelist);
-        var template = templateHTML(title,list,`<h2>${title}</h2>${description}`);
+        var template = templateHTML(title,list,
+          `<h2>${title}</h2>${description}`,
+          ` <a href ="/create">create</a>`
+          );
         response.writeHead(200); // response.writeHead(200)를 호출하여 HTTP 상태 코드 200(성공)을 응답 헤더에 설정하고,
         response.end(template); //response.end(template)를 호출하여 생성된 HTML 템플릿을 응답 본문으로 전송합니다.
       });
@@ -70,7 +73,10 @@ var app = http.createServer(function (request, response) {
         fs.readFile(`data/${queryData.id}`, 'utf8', function(err, description){
           var title = queryData.id;
           var list = templateList(filelist);
-          var template = templateHTML(title, list, `<h2>${title}</h2>${description}`);
+          var template = templateHTML(title, list, 
+            `<h2>${title}</h2>${description}`,
+            ` <a href ="/create">create</a> <a href ="/update?id=${title}">update</a>`
+          );
           response.writeHead(200);
           response.end(template);
         });
@@ -95,7 +101,7 @@ var app = http.createServer(function (request, response) {
             <input type="submit">
           </p>
         </form>
-      `);
+      `, ` `);
       response.writeHead(200);
       response.end(template);
     });
