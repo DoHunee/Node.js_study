@@ -49,13 +49,15 @@ var app = http.createServer(function (request, response) {
   var queryData = url.parse(_url, true).query; //URL의 쿼리 스트링을 파싱한 결과
   var pathname = url.parse(_url, true).pathname; //url의 경로 부분
   
+  
+  // fs.readdir(경로, 콜백함수) : 특정 디렉토리의 파일과 하위 디렉토리 목록을 읽는 데 사용;
+  // 경로: 읽고자 하는 디렉토리의 경로입니다.
+  // 콜백함수: 디렉토리 읽기 작업이 완료된 후에 실행될 함수입니다. 이 함수는 두 개의 매개변수를 가집니다:    
+  
   // 루트 경로의 요청인 경우
   if (pathname === "/") {
     // 쿼리 스트링이 없는 경우 기본적으로 보여줄 Welcome page 구성 부분
     if (queryData.id === undefined) {
-      // fs.readdir(경로, 콜백함수) : 특정 디렉토리의 파일과 하위 디렉토리 목록을 읽는 데 사용;
-      // 경로: 읽고자 하는 디렉토리의 경로입니다.
-      // 콜백함수: 디렉토리 읽기 작업이 완료된 후에 실행될 함수입니다. 이 함수는 두 개의 매개변수를 가집니다:
       fs.readdir("./data", function (error, filelist) {
         var title = "Welcome"; //제목
         var description = "Hello, Node.js"; //내용
@@ -68,6 +70,7 @@ var app = http.createServer(function (request, response) {
         response.end(template); //response.end(template)를 호출하여 생성된 HTML 템플릿을 응답 본문으로 전송합니다.
       });
     } 
+    // 루트경로의 요청이 아닌 뭐리스트링으로 접근 
     else {
       fs.readdir('./data', function(error, filelist){
         fs.readFile(`data/${queryData.id}`, 'utf8', function(err, description){
@@ -75,7 +78,15 @@ var app = http.createServer(function (request, response) {
           var list = templateList(filelist);
           var template = templateHTML(title, list, 
             `<h2>${title}</h2>${description}`,
-            ` <a href ="/create">create</a> <a href ="/update?id=${title}">update</a>`
+            ` 
+            <a href ="/create">create</a> 
+            <a href ="/update?id=${title}">update</a>
+            
+            <form action="delete_process" method="post">
+            <input type = "hidden" name="id" value ="${title}">
+            <input type = "submit" value="delete">
+            </form>
+            `
           );
           response.writeHead(200);
           response.end(template);
@@ -84,8 +95,9 @@ var app = http.createServer(function (request, response) {
     }
   }
 
-  // create 경로로 접근하는 경우!!
   // 데이터의 노출을 막기위해 method를 Post방식으로!! = > Post방식 안하면 url에 데이터 유출되잖아!!
+  // create 경로로 접근하는 경우!!
+  // create 버튼을 누르고 글을 생성할 때  
   else if(pathname === '/create'){
     fs.readdir('./data', function(error, filelist){
       var title = 'WEB - create';
@@ -128,7 +140,7 @@ var app = http.createServer(function (request, response) {
   } 
 
   // update 경로로 접근하는 경우!!
-  // 파일 선택 후 업데이트 버튼을 눌렀을때
+  // 파일 선택 후 update 버튼을 눌렀을때
   else if(pathname === '/update'){
     fs.readdir("./data", function (error, filelist) {
     fs.readFile(`data/${queryData.id}`, 'utf8', function(err, description){
@@ -172,6 +184,49 @@ var app = http.createServer(function (request, response) {
             response.end();
           })
         });
+    });
+  }
+
+  // delete 경로로 접근하는 경우!!
+  // 파일 선택 후 delete 버튼을 눌렀을때
+  else if(pathname === '/delete'){
+    fs.readdir("./data", function (error, filelist) {
+    fs.readFile(`data/${queryData.id}`, 'utf8', function(err, description){
+      var title = queryData.id; // 수정할 파일의 원래 타이틀 이름!
+      var list = templateList(filelist);
+      var template = templateHTML(title,list,
+        `
+        <form action="/update_process" method="post">
+          <input type="hidden" name="id" value="${title}">
+          <p><input type="text" name="title" placeholder="title" value="${title}"></p>
+          <p>
+            <textarea name="description" placeholder="description">${description}</textarea>
+          </p>
+          <p>
+            <input type="submit">
+          </p>
+        </form>
+        `,
+        `<a href="/create">create</a> <a href="/update?id=${title}">update</a>`
+        );
+      response.writeHead(200); // response.writeHead(200)를 호출하여 HTTP 상태 코드 200(성공)을 응답 헤더에 설정하고,
+      response.end(template); //response.end(template)를 호출하여 생성된 HTML 템플릿을 응답 본문으로 전송합니다.
+    });
+  });
+  }
+
+  else if(pathname === '/delete_process'){
+    var body = '';
+    request.on('data', function(data){
+        body = body + data;
+    });
+    request.on('end', function(){
+        var post = qs.parse(body);
+        var id = post.id;
+        fs.unlink(`data/${id}`, function(error){
+          response.writeHead(302, {Location: `/`});
+          response.end();
+        })
     });
   }
 
